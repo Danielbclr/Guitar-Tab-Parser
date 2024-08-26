@@ -1,4 +1,5 @@
 import json
+import csv
 import os
 import logging
 import random
@@ -98,6 +99,19 @@ def save_as_json(output_filename, data):
     except Exception as e:
         logging.error(f"Failed to save JSON file: {e}")
 
+def save_as_csv(output_filename, data):
+    """Saves the data as a CSV file."""
+    logging.info(f"Saving results to {output_filename}")
+    try:
+        with open(output_filename, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            #writer.writerow(['Note Counts'] + [note for note in note_mapping.keys()])  # Header row
+            for row in data:
+                writer.writerow(row)
+    except Exception as e:
+        logging.error(f"Failed to save CSV file: {e}")
+
+
 # Process all files in the folder and its subfolders
 def process_folder(target_folder, output_filename):
     all_results = []
@@ -118,21 +132,22 @@ def process_folder(target_folder, output_filename):
                 logging.info(f"Original result for file {filename}: {result}")
                 
                 # Generate two random shift amounts and add shifted results
-                for _ in range(2):
+                for _ in range(data_augmentation):
                     shift_amount = random.randint(1, 11)
                     shifted_result = shift_notes_and_label(result[:-1], result[-1], shift_amount)
                     all_results.append(shifted_result)
                     logging.info(f"Shifted result: {shifted_result}")
     
-    save_as_json(output_filename, all_results)
+    save_as_csv(output_filename, all_results)
 
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) != 3:
-        logging.error("Usage: python script.py <target_folder> <output_file>")
+    if len(sys.argv) != 4:
+        logging.error("Usage: python script.py <target_folder> <output_file> <data_augmentation times>")
         sys.exit(1)
     target_folder = sys.argv[1]
     output_file = sys.argv[2]
+    data_augmentation = int(sys.argv[3])
     logging.info(f"Starting processing of folder: {target_folder} with output file: {output_file}")
     process_folder(target_folder, output_file)
     logging.info("Processing complete.")
